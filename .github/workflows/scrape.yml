@@ -5,12 +5,17 @@ on:
     - cron: '17 * * * *'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: evolve-logs-fetch
+  cancel-in-progress: false
+
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      actions: write
+    timeout-minutes: 60
 
     steps:
       - name: Checkout repository
@@ -31,9 +36,3 @@ jobs:
         env:
           GOOGLE_WEB_APP_URL: ${{ secrets.GOOGLE_WEB_APP_URL }}
         run: node scraper.js
-
-      - name: Trigger next run
-        if: always()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh workflow run scrape.yml
